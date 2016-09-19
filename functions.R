@@ -93,32 +93,48 @@ get.list.for.plot <- function(input_data, days = NULL, siteIDs = NULL){
   return(data_list)
 }
 
+# plot.iteratively <- function(data_list){
+#  
+#   for(dt_index in 1:length(data_list)){
+#     # plot.new()
+#     plot_dt = data_list[dt_index][[1]]
+#     plot_dt_name = names(data_list[dt_index])
+#     
+#     # print(plot_dt)
+#     
+#     p <- ggplot(data = plot_dt, aes(x = strftime(timestamp, format="%H:%M"))) +
+#       ggtitle(plot_dt_name) + 
+#       ylim(0, NA) + 
+#       geom_point(aes(y = unitPeriodUsage)) +
+#       theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+#       xlab("Time") +
+#       ylab("usage(kWh)")
+#     
+#     p <- add.NA.vline(p, plot_dt)
+#     
+#     if(nrow(plot_dt)==97){
+#       p <- p + geom_vline(xintercept = c(plot_dt[, .I[timestamp == plot_dt[97]$timestamp]]), color="blue") 
+#       p <- p + geom_point(aes(x=strftime(plot_dt[97]$timestamp, format="%H:%M"),y=plot_dt[97]$unitPeriodUsage, color="over"))
+#     }
+#     
+#     # p <- make.plot(dt)
+#     print(p)
+#     
+#     input_key = readkey()
+#     if(input_key == 'q'){
+#       stop("force to quit")
+#     }
+#     else if(!is.na(input_key)){
+#       next
+#     }
+#     
+#   }
+# }
+
 plot.iteratively <- function(data_list){
- 
-  for(dt_index in 1:length(data_list)){
-    # plot.new()
-    plot_dt = data_list[dt_index][[1]]
-    plot_dt_name = names(data_list[dt_index])
-    
-    # print(plot_dt)
-    
-    p <- ggplot(data = plot_dt, aes(x = strftime(timestamp, format="%H:%M"))) +
-      ggtitle(plot_dt_name) + 
-      ylim(0, NA) + 
-      geom_point(aes(y = unitPeriodUsage)) +
-      theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-      xlab("Time") +
-      ylab("usage(kWh)")
-    
-    p <- add.NA.vline(p, plot_dt)
-    
-    if(nrow(plot_dt)==97){
-      p <- p + geom_vline(xintercept = c(plot_dt[, .I[timestamp == plot_dt[97]$timestamp]]), color="blue") 
-      p <- p + geom_point(aes(x=strftime(plot_dt[97]$timestamp, format="%H:%M"),y=plot_dt[97]$unitPeriodUsage, color="over"))
-    }
-    
-    # p <- make.plot(dt)
-    print(p)
+  
+  for(dl_index in 1:length(data_list)){
+    plot.a.day(data_list[dl_index])
     
     input_key = readkey()
     if(input_key == 'q'){
@@ -129,6 +145,34 @@ plot.iteratively <- function(data_list){
     }
     
   }
+}
+
+
+plot.a.day <- function(data_table){
+
+  plot_dt = data_table[[1]]
+  plot_dt_name = names(data_table)
+  
+  # print(plot_dt_name)
+  
+  p <- ggplot(data = plot_dt, aes(x = strftime(timestamp, format="%H:%M"))) +
+    ggtitle(plot_dt_name) + 
+    ylim(0, NA) + 
+    geom_point(aes(y = unitPeriodUsage)) +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+    xlab("Time") +
+    ylab("usage(kWh)")
+  
+  p <- add.NA.vline(p, plot_dt)
+  
+  if(nrow(plot_dt)==97){
+    p <- p + geom_vline(xintercept = c(plot_dt[, .I[index == 97]]-1), color="blue") 
+    p <- p + geom_point(aes(x=strftime(plot_dt[index == 97]$timestamp, format="%H:%M"),y=plot_dt[index == 97]$unitPeriodUsage, color="over"))
+  }
+
+  # p <- make.plot(dt)
+  print(p)
+  
 }
 
 
