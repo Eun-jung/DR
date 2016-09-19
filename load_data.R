@@ -8,7 +8,7 @@ library(scales)
 library(grDevices)
 
 
-raw_15min = fread("data/raw/1462028400000_1473174000000_15min_usages.csv")
+raw_15min = fread("Data/1462028400000_1473174000000_15min_usages.csv")
 #siteID, deciveID, timestamp, unitPeriodUsage
 names(raw_15min) <- c("siteID","deviceID","timestamp","unitPeriodUsage")
 
