@@ -17,7 +17,6 @@ str(mission_all)
 # $ reason         : chr  "DISCONNECTED" "DISCONNECTED" "DISCONNECTED" "DISCONNECTED" ...
 
 
-
 # siteid
 table(mission_all$siteid)
 length(unique(mission_all$siteid)) # 5504 residential
