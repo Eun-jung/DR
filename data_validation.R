@@ -71,12 +71,10 @@ head(count_NA_per_siteID[order(count, decreasing=T)])
 
 # max_NA = raw_15min[day == "2016-05-13" & siteID == 10005334]
 # max_NA[is.na(max_NA$unitPeriodUsage)]$unitPeriodUsage <- -99
-# 
-# tmp_list <- get.list.for.plot(max_NA)
-# plot.iteratively(tmp_list)
 
 list_max_NA <- get.list.for.plot(raw_15min[siteID==10005334])
-plot.iteratively(list_max_NA)
+save.plot.iteratively(target_dir = "plot/max_NA_user/", dt_list = list_max_NA)
+
 
 
 #####
@@ -136,6 +134,13 @@ for(i in 1:nrow(rownum_97)){
 # [1] "2016-05-02 18:30:00 10006202 77.736"
 # [1] "2016-05-02 18:30:00 10008826 NA"
 
-tmp = raw_15min[siteID == row_97_list[[1]]$siteID & day == row_97_list[[1]]$day]
-tmp_list = get.list.for.plot(tmp)
-plot.iteratively(tmp_list)
+# tmp = raw_15min[siteID == row_97_list[[1]]$siteID & day == row_97_list[[1]]$day]
+# tmp_list = get.list.for.plot(tmp)
+# plot.iteratively(tmp_list)
+
+for(row in row_97_list){
+  tmp = raw_15min[siteID == row$siteID & day == row$day]
+  tmp_list = get.list.for.plot(tmp)
+  save.plot.iteratively(target_dir = "plot/15min_97blocks/", tmp_list)
+}
+
