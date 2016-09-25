@@ -11,9 +11,10 @@
 # nrow(raw_15min[is.na(unitPeriodUsage)])/nrow(raw_15min)*100 #0.04828452%
 
 usage_NA <- raw_15min[is.na(raw_15min$unitPeriodUsage)]
-count_NA_per_day_siteID = usage_NA[, .(count = nrow(.SD)), by=c("day", "siteID")]
-hist(count_NA_per_day_siteID$count)
-# summary(count_NA_per_day_siteID$count)
+count_NA_per_day_siteID = raw_15min[, .(NAcount = sum(is.na(unitPeriodUsage))), by=c("day", "siteID")]
+hist(count_NA_per_day_siteID$NAcount)
+nrow(count_NA_per_day_siteID[NAcount==0])/nrow(count_NA_per_day_siteID) # 0.9738741
+# summary(count_NA_per_day_siteID$NAcount)
 # Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
 # 0.00000  0.00000  0.00000  0.04483  0.00000 23.00000
 
@@ -25,7 +26,6 @@ hist(count_NA_per_day_siteID$count)
 # [1] 9161
 # > head(unique(count_NA_per_day_siteID[count==0]$siteID))
 # [1] 10000399 10000474 10000478 10000480 10000482 10000484
-
 
 
 #####
@@ -134,8 +134,8 @@ for(i in 1:nrow(rownum_97)){
 # [1] "2016-05-02 18:30:00 10006202 77.736"
 # [1] "2016-05-02 18:30:00 10008826 NA"
 
-# tmp = raw_15min[siteID == row_97_list[[1]]$siteID & day == row_97_list[[1]]$day]
-# tmp_list = get.list.for.plot(tmp)
+tmp = raw_15min[siteID == 10003038 & day == "2016-07-27"]
+tmp_list = get.list.for.plot(tmp)
 # plot.iteratively(tmp_list)
 
 for(row in row_97_list){

@@ -1,6 +1,6 @@
 ###
 ### functions for table and plot
-###
+###s
 
 get.15min.label.dt <- function(label_day){
   
@@ -22,8 +22,10 @@ add.NA.vline <- function(plot_body, plot_dt){
   
   if(nrow(plot_dt[unitPeriodUsage == -99]) != 0){
     
+    index_NA = plot_dt[timestamp %in% plot_dt[unitPeriodUsage == -99]$timestamp]$index
+    
     p <- plot_body + 
-      geom_vline(aes(xintercept = c(plot_dt[, .(row = ifelse(unitPeriodUsage == -99, .I, 0))]$row-(nrow(plot_dt)-96)), colour="usage_NA", alpha=0.5), linetype = "longdash",show.legend=TRUE)
+      geom_vline(aes(xintercept = c(plot_dt[, .(row = ifelse(index %in% ifelse(plot_dt[unitPeriodUsage == -99]$index>96,0,plot_dt[unitPeriodUsage == -99]$index), index, 0))]$row), colour="usage_NA", alpha=0.5), linetype = "longdash",show.legend=TRUE)
       # geom_vline(xintercept = c(plot_dt[, .I[unitPeriodUsage == -99]]), colour="red", show.legend=TRUE) 
       # scale_colour_manual(values=c(usage_NA="red"))
   }
@@ -36,8 +38,8 @@ add.extraRow.vline <- function(plot_body, plot_dt){
   
   if(nrow(plot_dt)==97){
     p <- plot_body + 
-         geom_vline(aes(xintercept = c(plot_dt[, .I[index == 97]]-1), colour="row_97th", alpha=0.5), show.legend=TRUE) +
-         geom_point(aes(x=strftime(plot_dt[index == 97]$timestamp, format="%H:%M"), y=plot_dt[index == 97]$unitPeriodUsage, colour="row_97th")) 
+         geom_vline(aes(xintercept = c(plot_dt[, .I[timestamp == plot_dt[, ]$timestamp]][1]), colour="row_97th", alpha=0.5), show.legend=TRUE) +
+         geom_point(aes(x=strftime(plot_dt[index == 97]$timestamp, format="%H:%M"), y=plot_dt[index == 97]$unitPeriodUsage, colour="row_97th", alpha=0.5)) 
          # scale_colour_manual(values=c(row_97th="blue"))
   }
   
@@ -108,6 +110,8 @@ get.list.for.plot <- function(input_data, days = NULL, siteIDs = NULL){
         
         ## NA -> -99
         oneDay_oneDevice_dt = oneDay_oneDevice_dt[, ':='(unitPeriodUsage = ifelse(is.na(unitPeriodUsage), -99, unitPeriodUsage))]
+        ## set Key
+        setkey(oneDay_oneDevice_dt, index)
         
         data_list = append(data_list, setNames(list(oneDay_oneDevice_dt), oneDay_oneDevice_dtName))
       }

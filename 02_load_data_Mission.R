@@ -28,7 +28,13 @@ MISSION_INFO$missionID <- as.integer(MISSION_INFO$missionID)
 MISSION_INFO$start_timestamp <- as.POSIXct(MISSION_INFO$start_timestamp, tz='Asia/Seoul')
 MISSION_INFO$end_timestamp <- as.POSIXct(MISSION_INFO$end_timestamp, tz='Asia/Seoul')
 
+MISSION_INFO$day <- as.Date(MISSION_INFO$start_timestamp)
+MISSION_INFO$start_time <- chron(times=strftime(MISSION_INFO$start_timestamp, format="%H:%M:%S"))
+MISSION_INFO$end_time <- chron(times=strftime(MISSION_INFO$end_timestamp, format="%H:%M:%S"))
+
+
 mission_dt = merge(raw_mission, MISSION_INFO, by="missionID", all.x=T)
+mission_dt$day = as.Date(mission_dt$start_timestamp)
 
 enabled_mission_dt <- mission_dt[disconnectCount == 0]
 
@@ -87,8 +93,8 @@ enabled_mission_dt <- mission_dt[disconnectCount == 0]
 
 data_15min = raw_15min
 
-enabled_mission_dt$day <- as.Date(enabled_mission_dt$start_timestamp, tz="Asia/Seoul")
-data_15min <- merge(data_15min, enabled_mission_dt, by=c("siteID","day"), all.x=T)
+# enabled_mission_dt$day <- as.Date(enabled_mission_dt$start_timestamp, tz="Asia/Seoul")
+data_15min <- merge(data_15min, mission_dt, by=c("siteID","day"), all.x=T)
 
 # save(data_15min, file ="data/data_15min.RData")
 

@@ -6,23 +6,24 @@ library(ggplot2)
 library(timeDate)
 library(scales)
 library(grDevices)
-
+library(chron)
 
 raw_15min = fread("data/raw/1462028400000_1473174000000_15min_usages.csv")
 #siteID, deciveID, timestamp, unitPeriodUsage
 names(raw_15min) <- c("siteID","deviceID","timestamp","unitPeriodUsage")
 
 raw_15min$timestamp = as.POSIXct(raw_15min$timestamp/1000, origin="1970-01-01 00:00:00", tz='Asia/Seoul')
-raw_15min$unitPeriodUsage = as.numeric(raw_15min$unitPeriodUsage)/1000.0 #mWh -> kWh
-raw_15min$time = strftime(raw_15min$timestamp, format="%H:%M")
+# raw_15min$unitPeriodUsage = as.numeric(raw_15min$unitPeriodUsage)/1000.0 #mWh -> kWh
+raw_15min$time = chron(times=strftime(raw_15min$timestamp, format="%H:%M:%S"))
 
 #add day column
-raw_15min <- raw_15min[, ':='(day = as.Date(timestamp, tz="Asia/Seoul"))]
+raw_15min <- raw_15min[, ':='(day = as.Date(timestamp, tz="Asia/Seoul"),
+                              workingday = isWeekday(day))]
 
 
 # save(raw_15min, file ="data/raw/raw_15min.RData")
 
-## Loading saved raw data 
+# Loading saved raw data 
 load("data/raw/raw_15min.RData")
 
 
