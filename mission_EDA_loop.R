@@ -16,6 +16,10 @@ each_mission_result_list = list()
 st = Sys.time()
 for(target_missionID in list_MISSIONID){
 
+  MISSIONDAY = MISSION_INFO[missionID==target_missionID]$day
+  MISSIONSTARTTIME = MISSION_INFO[missionID==target_missionID]$start_time
+  MISSIONENDTIME = MISSION_INFO[missionID==target_missionID]$end_time
+  
   target_missionDT = mission_dt[missionID == target_missionID]
   
 #   ##number of customers
@@ -50,12 +54,12 @@ for(target_missionID in list_MISSIONID){
   DEFAULT_START = MISSION_INFO[missionID == target_missionID]$day - 31
   DEFAULT_END = MISSION_INFO[missionID == target_missionID]$day #I wrote this term to know the effect after the mission but this work left undone(DEFAULT_END is still mission day)
   
-  target_raw = data_15min[siteID %in% target_siteID & day >= DEFAULT_START & day <= DEFAULT_END]
+  target_raw = data_15min[siteID %in% target_siteID & day >= DEFAULT_START & day <= DEFAULT_END & time >= MISSIONSTARTTIME & time < MISSIONENDTIME]
   # length(unique(target_raw$siteID)) #3453
   
   target_count_per_day_siteID = target_raw[, .(NAcount = sum(is.na(unitPeriodUsage)),
                                                rowcount = nrow(.SD)), by=c("day", "siteID")]
-  target_count_per_day_siteID = target_count_per_day_siteID[,':='(isValid = (NAcount==0 & rowcount==96))]
+  target_count_per_day_siteID = target_count_per_day_siteID[,':='(isValid = (NAcount==0 & rowcount==4))]
   
   # nrow(target_count_per_day_siteID[NAcount==0])/nrow(target_count_per_day_siteID) # 0.9754041
   # length(unique(target_count_per_day_siteID[NAcount==0]$siteID)) # 3453
@@ -71,17 +75,10 @@ for(target_missionID in list_MISSIONID){
   
   # target_raw = target_raw[, ':='(isValid = FALSE)]
   target_raw = merge(target_raw, target_count_per_day_siteID, by=c("day", "siteID"), all.x = T)
-  revised_target_raw = target_raw[isValid==T & workingday ==T]
-  nrow(revised_target_raw) # 7854432
+  revised_target_raw = target_raw[isValid==T & workingday == T]
+  # nrow(revised_target_raw) # 7854432
   
   # target_raw = target_raw[c(day, siteID) %in% c(target_count_per_day_siteID[isValid == T]$day, target_count_per_day_siteID[isValid == T]$siteID)]
-  revised_target_missionDT = target_missionDT[siteID %in% revised_target_ID]
-  
-  revised_missioninfo_dt[missionID == target_missionID]$N_total = nrow(target_missionDT)
-  revised_missioninfo_dt[missionID == target_missionID]$N_valid = nrow(revised_target_missionDT)
-  revised_missioninfo_dt[missionID == target_missionID]$N_joined = nrow(revised_target_missionDT[joined == 1 & reason != "DISCONNECTED"]) #244 (origin 248)
-  revised_missioninfo_dt[missionID == target_missionID]$N_succeed = nrow(revised_target_missionDT[succeed == 1]) #126 (origin 127)
-  revised_missioninfo_dt[missionID == target_missionID]$N_fail = nrow(revised_target_missionDT[succeed == 0]) #118 (origin 121)
   
   ##aggregate 
   # target_dt = revised_target_raw[, .(timestamp = timestamp,
@@ -96,17 +93,13 @@ for(target_missionID in list_MISSIONID){
   
   target_dt = revised_target_raw[, ':='(unitPeriodUsage = sum(unitPeriodUsage)), by=c("siteID", "timestamp")]
   
-  MISSIONDAY = MISSION_INFO[missionID==target_missionID]$day
-  MISSIONSTARTTIME = MISSION_INFO[missionID==target_missionID]$start_time
-  MISSIONENDTIME = MISSION_INFO[missionID==target_missionID]$end_time
-  
-  CBL_dt = target_dt[day <= MISSIONDAY & time >= MISSIONSTARTTIME & time < MISSIONENDTIME, .(unitPeriodUsage = sum(unitPeriodUsage)), by=c("day", "siteID")]
-  CBL_dt = CBL_dt[order(siteID, day), tail(.SD, 11), by="siteID"]
-  CBL_dt$isCBLday <- -1
-  CBL_dt[day < MISSIONDAY] <- transform(CBL_dt[day < MISSIONDAY], isCBLday = ave(unitPeriodUsage, siteID, FUN = function(x) rank(-x, ties.method="first")<=6))
-  # CBL_dt = CBL_dt[day < MISSIONDAY, ':='(isCBLday = frank(.SD, -unitPeriodUsgae, ties.method = "first")), by=c("day", "siteID")]
+  target_onMission_dt = target_dt[day <= MISSIONDAY & time >= MISSIONSTARTTIME & time < MISSIONENDTIME, .(unitPeriodUsage = sum(unitPeriodUsage)), by=c("day", "siteID")]
+  CBL_raw = target_onMission_dt[order(siteID, day), tail(.SD, 11), by="siteID"]
+  CBL_raw$isCBLday <- -1
+  CBL_raw[day < MISSIONDAY] <- transform(CBL_raw[day < MISSIONDAY], isCBLday = ave(unitPeriodUsage, siteID, FUN = function(x) rank(-x, ties.method="first")<=6))
+  # CBL_raw = CBL_raw[day < MISSIONDAY, ':='(isCBLday = frank(.SD, -unitPeriodUsgae, ties.method = "first")), by=c("day", "siteID")]
   #isCBLday; 1 : max 6 days, 0 : left 4 days, -1 : mission day
-  CBL_dt = CBL_dt[isCBLday != 0, .(unitPeriodUsage = mean(unitPeriodUsage)), by=c("siteID", "isCBLday")]
+  CBL_dt = CBL_raw[isCBLday != 0, .(unitPeriodUsage = mean(unitPeriodUsage)), by=c("siteID", "isCBLday")]
   #     siteID  isCBLday unitPeriodUsage
   # 1: 10000484        1        301815.0
   # 2: 10000484       -1        140084.0
@@ -128,9 +121,18 @@ for(target_missionID in list_MISSIONID){
   
   result_dt$reductionRate <- 1 - result_dt$load_mission/result_dt$load_CBL
   
+  result_dt = merge(result_dt, target_missionDT, by="siteID")
+  
   revised_missioninfo_dt[missionID == target_missionID]$load_CBL <- sum(result_dt$load_CBL)
   revised_missioninfo_dt[missionID == target_missionID]$load_mission <- sum(result_dt$load_mission)
   revised_missioninfo_dt[missionID == target_missionID]$mean_reductionRate <- mean(result_dt$reductionRate)
+  
+  revised_missioninfo_dt[missionID == target_missionID]$N_total = nrow(target_missionDT)
+  revised_missioninfo_dt[missionID == target_missionID]$N_valid = nrow(result_dt)
+  revised_missioninfo_dt[missionID == target_missionID]$N_joined = nrow(result_dt[joined == 1 & reason != "DISCONNECTED"]) #244 (origin 248)
+  revised_missioninfo_dt[missionID == target_missionID]$N_succeed = nrow(result_dt[succeed == 1]) #126 (origin 127)
+  revised_missioninfo_dt[missionID == target_missionID]$N_fail = nrow(result_dt[succeed == 0]) #118 (origin 121)
+  
   
   #add each mission result to each_mission_result_list 
   each_mission_result_list = append(each_mission_result_list, setNames(list(result_dt),target_missionID))
@@ -139,3 +141,5 @@ for(target_missionID in list_MISSIONID){
 
 et = Sys.time()
 print(et - st)
+
+write.csv(revised_missioninfo_dt, file = "output/revised_missioninfo_dt.csv")
