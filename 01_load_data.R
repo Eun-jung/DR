@@ -8,57 +8,54 @@ library(scales)
 library(grDevices)
 library(chron)
 
-raw_15min = fread("data/raw/1462028400000_1473174000000_15min_usages.csv")
-#siteID, deciveID, timestamp, unitPeriodUsage
-names(raw_15min) <- c("siteID","deviceID","timestamp","unitPeriodUsage")
+destfile = "data/raw/raw_15min_161010.RData"
 
-raw_15min$timestamp = as.POSIXct(raw_15min$timestamp/1000, origin="1970-01-01 00:00:00", tz='Asia/Seoul')
-# raw_15min$unitPeriodUsage = as.numeric(raw_15min$unitPeriodUsage)/1000.0 #mWh -> kWh
-raw_15min$time = chron(times=strftime(raw_15min$timestamp, format="%H:%M:%S"))
+## if saved RData doesn't exist, then read csv files
+if(!file.exists(destfile)){
+  lgu5_9 = fread("data/raw/1462028400000_1473174000000_15min_usages.csv")
+  names(lgu5_9) <- c("siteId","deviceId","timestamp","unitPeriodUsage")
+  
+  lgu5_9$timestamp = lgu5_9$timestamp/1000
+  lgu5_9$group = "LGU"
+  
+  lgu1 = fread("data/raw/lgu1.csv")
+  lgu2 = fread("data/raw/lgu2.csv")
+  lgu3 = fread("data/raw/lgu3.csv")
+  lgu4 = fread("data/raw/lgu4.csv")
+  lgu9 = fread("data/raw/lgu9.csv")
+  encored1_9 = fread("data/raw/encored15minUsage.csv")
+  
+  raw_list = list(lgu5_9, lgu1, lgu2, lgu3, lgu4, lgu9, encored1_9)
+  
+  raw_15min = rbindlist(raw_list)
+  raw_15min = unique(raw_15min) ## eliminate redundant rows
+  
+  raw_15min$timestamp = as.POSIXct(raw_15min$timestamp, origin="1970-01-01 00:00:00", tz='Asia/Seoul')
+  raw_15min$time = chron(times=strftime(raw_15min$timestamp, format="%H:%M:%S"))
+  
+  #add day column
+  raw_15min[, ':='(day = as.Date(timestamp, tz="Asia/Seoul"))]
+  raw_15min[, ':='(workingday = isWeekday(day))]
+  
+  ## Update 'holidays' to 'workingday = F' 
+  HOLIDAYS = c('2016-01-01',
+               '2016-02-08', '2016-02-09', '2016-02-10',
+               '2016-03-01',
+               '2016-04-13', 
+               '2016-05-05', '2016-05-06',
+               '2016-06-06',
+               '2016-08-15',
+               '2016-09-14', '2016-09-15', '2016-09-16',
+               '2016-10-03')
+  HOLIDAYS = as.Date(HOLIDAYS, tz="Asia/Seoul")
+  raw_15min[day %in% HOLIDAYS, ':='(workingday = FALSE)] 
+  
+  save(raw_15min, file ="data/raw/raw_15min_161010.RData")
+} else{
+  ## Loading saved raw data 
+  load("data/raw/raw_15min_161010.RData")
+}
 
-#add day column
-raw_15min <- raw_15min[, ':='(day = as.Date(timestamp, tz="Asia/Seoul"),
-                              workingday = isWeekday(day))]
 
 
-# save(raw_15min, file ="data/raw/raw_15min.RData")
 
-# Loading saved raw data 
-load("data/raw/raw_15min.RData")
-
-
-# raw_api_log = fread("data/raw/log_prod1_0.txt")
-# # 
-# # untar("../data/raw/api_log1.tar.gz", files="../data/raw")
-# 
-# log_tmp = read_log("data/raw/log_prod1_0.txt")
-
-
-# ###
-# ### data validation check
-# ###
-# 
-# 
-# 
-# 
-# data_NA <- data_15min[, .(siteID = siteID,
-#                           deviceID = deviceID,
-#                           count_all = nrow(.SD), 
-#                           count_na = sum(ifelse(is.na(unitPeriodUsage),1,0))), by=c("time", "siteID", "deviceID")]
-# 
-# 
-# 
-# 
-# data_15min[siteID %in% rownum_of_day[count==97]$siteID]
-# 
-# tmp<-raw_15min[!is.na(raw_15min$unitPeriodUsage), .(count = nrow(.SD)), by=c("deviceID", "day")]
-# tmp2<-tmp[count==96]
-# tmp3<-tmp2[, .(count = nrow(.SD)), by="deviceID"]
-# # nrow(tmp3[count==128])/nrow(data_15min[, .(count = nrow(.SD)), by="deviceID"])*100 #5.71211%
-# 
-# nalocf_data <- data_15min
-# nalocf_data$unitPeriodUsage <- na.locf(nalocf_data$unitPeriodUsage)
-# tmp<-nalocf_data[!is.na(nalocf_data$unitPeriodUsage), .(count = nrow(.SD)), by=c("deviceID", "day")]
-# tmp2<-tmp[count==96]
-# tmp3<-tmp2[, .(count = nrow(.SD)), by="deviceID"]
-# # nrow(tmp3[count==128])/nrow(data_15min[, .(count = nrow(.SD)), by="deviceID"])*100 #6.005875%

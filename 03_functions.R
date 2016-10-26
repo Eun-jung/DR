@@ -1,6 +1,6 @@
 ###
 ### functions for table and plot
-###s
+###
 
 get.15min.label.dt <- function(label_day){
   
@@ -61,7 +61,7 @@ readkey <- function()
   return(line)
 }
 
-get.list.for.plot <- function(input_data, days = NULL, siteIDs = NULL){
+get.list.for.plot <- function(input_data, days = NULL, siteIds = NULL){
   
   # st = Sys.time()
   
@@ -71,10 +71,10 @@ get.list.for.plot <- function(input_data, days = NULL, siteIDs = NULL){
     uniqueDays =  unique(as.Date(days, tz="Asia/Seoul"))
   }
   
-  if(is.null(siteIDs)){
-    uniqueSites =  unique(input_data$siteID)
+  if(is.null(siteIds)){
+    uniqueSites =  unique(input_data$siteId)
   } else{
-    uniqueSites =  unique(as.integer(siteIDs))
+    uniqueSites =  unique(as.integer(siteIds))
   }
   
   data_list = list()
@@ -82,13 +82,13 @@ get.list.for.plot <- function(input_data, days = NULL, siteIDs = NULL){
   for(d in uniqueDays){
     for(s in uniqueSites){
       
-      oneDay_dt = input_data[siteID == s & day == d,
+      oneDay_dt = input_data[siteId == s & day == d,
                              '.'(timestamp = timestamp,
-                                 deviceID = deviceID,
+                                 deviceId = deviceId,
                                  unitPeriodUsage = unitPeriodUsage,
                                  index = .I)]
       
-      uniqueDevices = unique(oneDay_dt$deviceID)
+      uniqueDevices = unique(oneDay_dt$deviceId)
       if(length(uniqueDevices)==1){
         uniqueDevices <- 0 #0000 : All devices
       }else{
@@ -100,13 +100,13 @@ get.list.for.plot <- function(input_data, days = NULL, siteIDs = NULL){
           oneDay_oneDevice_dt = oneDay_dt[, ':='(unitPeriodUsage = sum(unitPeriodUsage)), by=index]
           oneDay_oneDevice_dtName = paste(as.Date(d, tz="Asia/Seoul"), s, "All", sep = "_")
         } else{
-          oneDay_oneDevice_dt = oneDay_dt[deviceID == dv]
+          oneDay_oneDevice_dt = oneDay_dt[deviceId == dv]
           oneDay_oneDevice_dtName = paste(as.Date(d, tz="Asia/Seoul"), s, dv, sep = "_")
         }
         
         default_timestamp_dt <- get.15min.label.dt(d)
         oneDay_oneDevice_dt = merge(default_timestamp_dt, oneDay_oneDevice_dt, by="timestamp", all.x=T)
-        oneDay_oneDevice_dt$deviceID <- dv
+        oneDay_oneDevice_dt$deviceId <- dv
         
         ## NA -> -99
         oneDay_oneDevice_dt = oneDay_oneDevice_dt[, ':='(unitPeriodUsage = ifelse(is.na(unitPeriodUsage), -99, unitPeriodUsage))]
@@ -251,7 +251,7 @@ save.plot.iteratively <- function(target_dir, dt_list, width_ = 10, height_ = 6,
 # dt_list<-get.list.for.plot(max_NA)
 # plot_iteratively(dt_list)
 # 
-# tmp_<-raw_15min[siteID == tmp_list[[1]]$siteID & day == tmp_list[[1]]$day]
+# tmp_<-raw_15min[siteId == tmp_list[[1]]$siteId & day == tmp_list[[1]]$day]
 # tt<-get.list.for.plot(tmp_)
 # plot.iteratively(tt)
 

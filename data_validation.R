@@ -11,20 +11,20 @@
 # nrow(raw_15min[is.na(unitPeriodUsage)])/nrow(raw_15min)*100 #0.04828452%
 
 usage_NA <- raw_15min[is.na(raw_15min$unitPeriodUsage)]
-count_NA_per_day_siteID = raw_15min[, .(NAcount = sum(is.na(unitPeriodUsage))), by=c("day", "siteID")]
-hist(count_NA_per_day_siteID$NAcount)
-nrow(count_NA_per_day_siteID[NAcount==0])/nrow(count_NA_per_day_siteID) # 0.9738741
-# summary(count_NA_per_day_siteID$NAcount)
+count_NA_per_day_siteId = raw_15min[, .(NAcount = sum(is.na(unitPeriodUsage))), by=c("day", "siteId")]
+hist(count_NA_per_day_siteId$NAcount)
+nrow(count_NA_per_day_siteId[NAcount==0])/nrow(count_NA_per_day_siteId) # 0.9738741
+# summary(count_NA_per_day_siteId$NAcount)
 # Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
 # 0.00000  0.00000  0.00000  0.04483  0.00000 23.00000
 
-# count_NA_per_day_siteID[count==23]
-# day   siteID count
+# count_NA_per_day_siteId[count==23]
+# day   siteId count
 # 1: 2016-05-13 10005334    23
 
-# length(unique(count_NA_per_day_siteID[count==0]$siteID))
+# length(unique(count_NA_per_day_siteId[count==0]$siteId))
 # [1] 9161
-# > head(unique(count_NA_per_day_siteID[count==0]$siteID))
+# > head(unique(count_NA_per_day_siteId[count==0]$siteId))
 # [1] 10000399 10000474 10000478 10000480 10000482 10000484
 
 
@@ -56,23 +56,23 @@ plot_count_NA_per_15min
 
 
 #####
-## 1-2. unitPeriodUsage NA - plots of the siteID which has max NA counts
+## 1-2. unitPeriodUsage NA - plots of the siteId which has max NA counts
 #####
 
-count_NA_per_siteID = usage_NA[, .(count = nrow(.SD)), by=c("siteID")]
-head(count_NA_per_siteID[order(count, decreasing=T)])
-# summary(count_NA_per_siteID$count)
+count_NA_per_siteId = usage_NA[, .(count = nrow(.SD)), by=c("siteId")]
+head(count_NA_per_siteId[order(count, decreasing=T)])
+# summary(count_NA_per_siteId$count)
 # Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 # 1.00    1.00    2.00   11.34    5.00  427.00 
 
-# count_NA_per_siteID[count == 427]
-# siteID count
+# count_NA_per_siteId[count == 427]
+# siteId count
 # 1: 10005334   427
 
-# max_NA = raw_15min[day == "2016-05-13" & siteID == 10005334]
+# max_NA = raw_15min[day == "2016-05-13" & siteId == 10005334]
 # max_NA[is.na(max_NA$unitPeriodUsage)]$unitPeriodUsage <- -99
 
-list_max_NA <- get.list.for.plot(raw_15min[siteID==10005334])
+list_max_NA <- get.list.for.plot(raw_15min[siteId==10005334])
 save.plot.iteratively(target_dir = "plot/max_NA_user/", dt_list = list_max_NA)
 
 
@@ -81,7 +81,7 @@ save.plot.iteratively(target_dir = "plot/max_NA_user/", dt_list = list_max_NA)
 ## 2. rownum of day 
 #####
 
-rownum_of_day <- raw_15min[, .(count = nrow(.SD)), by=c("siteID", "deviceID", "day")]
+rownum_of_day <- raw_15min[, .(count = nrow(.SD)), by=c("siteId", "deviceID", "day")]
 # nrow(rownum_of_day[count!=96])/nrow(rownum_of_day)*100 #9.75215%
 # summary(rownum_of_day$count)
 # Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
@@ -94,8 +94,8 @@ rownum_of_day <- raw_15min[, .(count = nrow(.SD)), by=c("siteID", "deviceID", "d
 
 rownum_97 = rownum_of_day[count==97]
 
-# 모두 다른 siteID
-# siteID deviceID        day count
+# 모두 다른 siteId
+# siteId deviceID        day count
 # 1: 10000515     2339 2016-05-02    97
 # 2: 10000522     2346 2016-05-02    97
 # 3: 10000617     2441 2016-05-02    97
@@ -114,9 +114,9 @@ rownum_97 = rownum_of_day[count==97]
 
 row_97_list = c()
 for(i in 1:nrow(rownum_97)){
-  dt = raw_15min[siteID == rownum_97[i]$siteID & day == rownum_97[i]$day]
+  dt = raw_15min[siteId == rownum_97[i]$siteId & day == rownum_97[i]$day]
   row_97_list <- append(row_97_list, list(dt[97]))
-  print(paste(dt$timestamp[97], dt$siteID[97], dt$unitPeriodUsage[97]))
+  print(paste(dt$timestamp[97], dt$siteId[97], dt$unitPeriodUsage[97]))
 }
 # [1] "2016-05-02 18:30:00 10000515 117.693"
 # [1] "2016-05-02 18:30:00 10000522 NA"
@@ -134,12 +134,12 @@ for(i in 1:nrow(rownum_97)){
 # [1] "2016-05-02 18:30:00 10006202 77.736"
 # [1] "2016-05-02 18:30:00 10008826 NA"
 
-tmp = raw_15min[siteID == 10003038 & day == "2016-07-27"]
+tmp = raw_15min[siteId == 10003038 & day == "2016-07-27"]
 tmp_list = get.list.for.plot(tmp)
 # plot.iteratively(tmp_list)
 
 for(row in row_97_list){
-  tmp = raw_15min[siteID == row$siteID & day == row$day]
+  tmp = raw_15min[siteId == row$siteId & day == row$day]
   tmp_list = get.list.for.plot(tmp)
   save.plot.iteratively(target_dir = "plot/15min_97blocks/", tmp_list)
 }

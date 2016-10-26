@@ -5,7 +5,7 @@
 library(reshape2)
 
 raw_mission = fread("data/raw/uplusMissionAll.csv")
-setnames(raw_mission, old=c("siteid","missionId"), new=c("siteID","missionID"))
+setnames(raw_mission, old=c("siteId","missionId"), new=c("siteId","missionId"))
 
 # > unique(raw_mission$missionId)
 # [1] 138 144 156 159 162 166 167 171
@@ -22,9 +22,9 @@ MISSION_INFO <- data.table(
                   c(171, "2016-09-06 14:00:00", "2016-09-06 15:00:00"))
 
 MISSION_INFO <- data.table(t(MISSION_INFO))
-names(MISSION_INFO) <- c("missionID","start_timestamp","end_timestamp")
+names(MISSION_INFO) <- c("missionId","start_timestamp","end_timestamp")
 
-MISSION_INFO$missionID <- as.integer(MISSION_INFO$missionID)
+MISSION_INFO$missionId <- as.integer(MISSION_INFO$missionId)
 MISSION_INFO$start_timestamp <- as.POSIXct(MISSION_INFO$start_timestamp, tz='Asia/Seoul')
 MISSION_INFO$end_timestamp <- as.POSIXct(MISSION_INFO$end_timestamp, tz='Asia/Seoul')
 
@@ -33,23 +33,23 @@ MISSION_INFO$start_time <- chron(times=strftime(MISSION_INFO$start_timestamp, fo
 MISSION_INFO$end_time <- chron(times=strftime(MISSION_INFO$end_timestamp, format="%H:%M:%S"))
 
 
-mission_dt = merge(raw_mission, MISSION_INFO, by="missionID", all.x=T)
+mission_dt = merge(raw_mission, MISSION_INFO, by="missionId", all.x=T)
 mission_dt$day = as.Date(mission_dt$start_timestamp)
 
 enabled_mission_dt <- mission_dt[disconnectCount == 0]
 
-# get.mission.info <- function(input_siteID, input_timestamp){
+# get.mission.info <- function(input_siteId, input_timestamp){
 #   
 #   mission_joined=c()
 #   mission_succeed=c()
 #   mission_reason=c()
 #   mission_ongoing=c()
 #   
-#   for(index in 1:length(input_siteID)){
-#     dt = enabled_mission_dt[siteID == input_siteID[index] &
+#   for(index in 1:length(input_siteId)){
+#     dt = enabled_mission_dt[siteId == input_siteId[index] &
 #                               as.Date(start_timestamp, tz="Asia/Seoul") == as.Date(input_timestamp[index], tz="Asia/Seoul")]
 #     #   
-#     #   print(input_siteID)
+#     #   print(input_siteId)
 #     #   print(input_timestamp)
 #     
 #     joined = ifelse(nrow(dt)==0, NA, dt$joined)
@@ -63,10 +63,10 @@ enabled_mission_dt <- mission_dt[disconnectCount == 0]
 #     mission_ongoing <- append(mission_ongoing, ongoing)
 #   }
 #   
-# #   dt = enabled_mission_dt[siteID == input_siteID &
+# #   dt = enabled_mission_dt[siteId == input_siteId &
 # #                           as.Date(start_timestamp, tz="Asia/Seoul") == as.Date(input_timestamp, tz="Asia/Seoul")]
 # # #   
-# # #   print(input_siteID)
+# # #   print(input_siteId)
 # # #   print(input_timestamp)
 # #   
 # #   mission_joined = ifelse(nrow(dt)==0, NA, dt$joined)
@@ -80,8 +80,8 @@ enabled_mission_dt <- mission_dt[disconnectCount == 0]
 #               mission_ongoing = mission_ongoing))    
 # }
 # 
-# get.mission.joined <- function(input_siteID, input_timestamp){
-#   dt = enabled_mission_dt[siteID == input_siteID &
+# get.mission.joined <- function(input_siteId, input_timestamp){
+#   dt = enabled_mission_dt[siteId == input_siteId &
 #                             as.Date(start_timestamp, tz="Asia/Seoul") == as.Date(input_timestamp, tz="Asia/Seoul")]
 #   
 #   joined = ifelse(nrow(dt)==0, NA, dt$joined)
@@ -94,7 +94,7 @@ enabled_mission_dt <- mission_dt[disconnectCount == 0]
 data_15min = raw_15min
 
 # enabled_mission_dt$day <- as.Date(enabled_mission_dt$start_timestamp, tz="Asia/Seoul")
-data_15min <- merge(data_15min, mission_dt, by=c("siteID","day"), all.x=T)
+data_15min <- merge(data_15min, mission_dt, by=c("siteId","day"), all.x=T)
 
 # save(data_15min, file ="data/data_15min.RData")
 
@@ -103,5 +103,6 @@ load("data/data_15min.RData")
 
 # data_15min <- data_15min[joined==1, ':='(isOnMission = ifelse(timestamp >= start_timestamp & timestamp < end_timestamp, T, F))]
 # 
-# tmp = get.list.for.plot(data_15min[siteID==10001284 & day=="2016-07-20"])
+# tmp = get.list.for.plot(data_15min[siteId==10001284 & day=="2016-07-20"])
 # plot.iteratively(tmp)
+
